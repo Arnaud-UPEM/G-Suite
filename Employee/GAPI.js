@@ -9,5 +9,12 @@ var GAPI = {
     },
 
 
+    updateValues: function(data, id, rangeName, valueInputOption = 'USER_ENTERED') {
+        var v = Sheets.newValueRange();
+            v.values = data;
 
+        var result = Sheets.Spreadsheets.Values.update(v, id, rangeName, {
+            valueInputOption: valueInputOption
+        });
+    },
 };

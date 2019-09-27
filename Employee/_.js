@@ -669,6 +669,18 @@ var REPARTITION_SJO = {
 };
 
 
+var SUIVICOMPTEHEURE_SJO = {
+
+    CONFIG: {
+        ID: '1-JVQ-3kYWhVkwG5MYjkVGjy0X4qWCk0BfZj5gKAzgwU',
+
+        DIR_NAME_RANGE: ['D10:M10', 'D10:M11'],
+        EMP_NAME_RANGE: ['B15:V', 'B16:V'],
+    },
+
+}
+
+
 function Test_REPARTITION_SJO() {
     // Logger.log('%s', REPARTITION_SJO.CONFIG.DETAILS[0][0]);
     

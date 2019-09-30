@@ -1,3 +1,8 @@
+/* 
+    TODO
+        - Handle #N/A values
+*/
+
 
 var EMPLOYEE = {
 
@@ -100,7 +105,7 @@ var EMPLOYEE = {
             [MONDAY,    2, 0, 2],
             [TUESDAY,   2, 2, 2],
             [THURSDAY,  0, 2, 0],
-            [FRIDAY,    0, 0, 2],   
+            [FRIDAY,    0, 0, 2],
         */
         ];
 
@@ -173,6 +178,9 @@ var EMPLOYEE = {
         this._sum_acm_peri = '';
 
         this._affectations = [];        // Array of Affectation
+
+        this._contract_start = '';
+        this._contract_end = '';
 
         this._contract_start = '';
         this._contract_end = '';
@@ -254,6 +262,292 @@ var EMPLOYEE = {
 };
 
 
+var Affectation = function () {
+    this._school = '';
+    this._period = '';
+    this._section = '';
+    
+    this._days = [
+        /* 
+            [MONDAY,    2, 0, 2],
+            [TUESDAY,   2, 2, 2],
+            [THURSDAY,  0, 2, 0],
+            [FRIDAY,    0, 0, 2],
+        */
+    ];
+    
+    this.addDay = function (day, h1, h2, h3) {
+        this._days.push([day, h1, h2, h3]);
+    };
+    
+    
+    this.reset = function () {
+        this._school = '';
+        this._period = '';
+        this._section = '';
+    
+        while (this._days.length) {
+            this._days.pop();
+        }
+    };
+    
+    
+    this.deep_copy = function () {
+        var days = [];
+        for (var i = 0; i < this._days.length; ++i)
+            days.push(this._days[i]);
+    
+        var a = new EMPLOYEE.Affectation();
+        a._school = this._school;
+        a._period = this._period;
+        a._section = this._section;
+        a._days = days;
+        return a;
+    };
+    
+    
+    this.to_object = function () {
+        var ds = [];
+        for (var i = 0; i < this._days.length; ++i)
+            ds.push(this._days[i]);
+    
+        return {
+            'school': this._school,
+            'period': this._period,
+            'section': this._section,
+    
+            'days': ds,
+        };
+    };
+};
+
+
+var Employee = function () {
+    this._fname = '';
+    this._lname = '';
+    this._fullname = '';
+
+    this._dob = '';
+    this._address = '';
+
+    this._discharded = false;       // Only for directors
+
+    this._phone_per = '';
+    this._phone_pro = '';
+
+    this._grade = '';
+    this._school = '';
+    this._quality = '';
+
+    this._obs = '';
+
+    this._sum_weekly_peri = '';
+    this._sum_acm_peri = '';
+
+    this._affectations = [];        // Array of Affectation
+
+    this._contract_start = '';
+    this._contract_end = '';
+
+    // Outputs
+    this.print = function () {
+        Logger.log('');
+    };
+
+
+    this.to_array = function () {
+        return [
+            this._fullname,
+            this._phone,
+
+            this._grade,
+            this._school,
+            this._quality,
+
+            this._obs,
+            this._affect,
+
+            this._sum_weekly_peri,
+            this._sum_acm_peri,
+
+            this._monday_morn,
+            this._monday_noon,
+            this._monday_even,
+
+            this._tuesday_morn,
+            this._tuesday_noon,
+            this._tuesday_even,
+
+            this._thursday_morn,
+            this._thursday_noon,
+            this._thursday_even,
+
+            this._friday_morn,
+            this._friday_noon,
+            this._friday_even,
+        ];
+    };
+
+
+    this.to_object = function () {
+        var affs = [];
+        for (var i = 0; i < this._affectations.length; ++i)
+            affs.push(this._affectations[i].to_object());
+
+        return {
+            'fname': this._fname,
+            'lname': this._lname,
+            'fullname': this._fullname,
+
+            'dob': this._dob,
+            'address': this._address,
+
+            'discharded': this._discharded,
+
+            'phone_per': this._phone_per,
+            'phone_pro': this._phone_pro,
+
+            'grade': this._grade,
+            'school': this._school,
+            'quality': this._quality,
+
+            'obs': this._obs,
+
+            'sum_weekly_peri': this._sum_weekly_peri,
+            'sum_acm_peri': this._sum_acm_peri,
+
+            'affectations': affs,
+
+            'contract_start': this._contract_start,
+            'contract_end': this._contract_end,
+        };
+    };
+};
+
+
+var EMPLOYEES = {
+
+    employees: [],   // List of Employee
+
+
+    add: function(employee) {
+
+        var e = this.get(employee._fullname);
+
+        if (e) {
+            // Logger.log('Found employee with name: %s', employee._fullname);
+            this.single_update(e, employee);
+        }
+        else {
+            // Logger.log('Cannot found employee with name: %s. Adding %s', employee._fullname, e);
+            this.employees.push(employee);
+        }
+    },
+
+
+    get: function(fullname) {
+        for (var i = 0; i < this.employees.length; ++i) {
+            if (this.employees[i]._fullname == fullname)
+                return this.employees[i];
+        }
+        return false;
+    },
+
+
+    getAll: function() { return this.employees; },
+
+
+    // Update a collection of Employee
+    update: function(employees) {
+
+        for (var i = 0; i < employees.length; ++i) {
+            this.add(employees[i]);
+        }
+    },
+
+
+    // Update a single Employee
+    // We assume that dst intels are newer
+    single_update: function(srcEmployee, dstEmployee) {
+
+        // Date of birth - String
+        srcEmployee._dob = (dstEmployee._dob != '') ? 
+                            dstEmployee._dob : 
+                            srcEmployee._dob;
+
+
+        // Address - String
+        srcEmployee._address = (dstEmployee._address != '') ? 
+                                dstEmployee._address : 
+                                srcEmployee._address;
+
+
+        // Discharged - Boolean
+        // Only for directors
+        srcEmployee._discharded     = (dstEmployee._discharded) ? dstEmployee._discharded : srcEmployee._discharded;
+
+
+        // Phones - Stringing
+        if (dstEmployee._fullname.indexOf('ABLANA') != -1) {
+            Logger.log('%s %s', dstEmployee._phone_per, dstEmployee._phone_pro);
+        }
+        srcEmployee._phone_per      = (dstEmployee._phone_per != '') ? dstEmployee._phone_per : srcEmployee._phone_per;
+        srcEmployee._phone_pro      = (dstEmployee._phone_pro != '') ? dstEmployee._phone_pro : srcEmployee._phone_pro;
+
+
+        // Grade - School - Quality
+        srcEmployee._grade      = (dstEmployee._grade != '')    ? dstEmployee._grade    : srcEmployee._grade;
+        srcEmployee._school     = (dstEmployee._school != '')   ? dstEmployee._school   : srcEmployee._school;
+        srcEmployee._quality    = (dstEmployee._quality != '')  ? dstEmployee._quality  : srcEmployee._quality;
+
+
+        // Observation - String
+        srcEmployee._obs = (dstEmployee._obs != '') ? dstEmployee._obs : srcEmployee._obs;
+
+
+        // ... - String - Technically Int
+        srcEmployee._sum_acm_peri       = (dstEmployee._sum_acm_peri != '')     ? dstEmployee._sum_acm_peri     : srcEmployee._sum_acm_peri;
+        srcEmployee._sum_weekly_peri    = (dstEmployee._sum_weekly_peri != '')  ? dstEmployee._sum_weekly_peri  : srcEmployee._sum_weekly_peri;
+        
+
+        // Contract Start/End - String
+        srcEmployee._contract_end       = (dstEmployee._contract_end != '')     ? dstEmployee._contract_end     : srcEmployee._contract_end;
+        srcEmployee._contract_start     = (dstEmployee._contract_start != '')   ? dstEmployee._contract_start   : srcEmployee._contract_start;
+        
+        srcEmployee._contract_start     = (dstEmployee._contract_start != '') ? dstEmployee._contract_start : srcEmployee._contract_start;
+        srcEmployee._contract_end       = (dstEmployee._contract_end != '') ? dstEmployee._contract_end : srcEmployee._contract_end;
+        
+        
+        for (var i = 0; i < dstEmployee._affectations.length; ++i) {
+
+            var dstAffect = dstEmployee._affectations[i];
+
+            // Loop through src affectations
+            // If we match compare values
+            // If not, add the entry
+            var matched = false;
+            for (var j = 0; j < srcEmployee._affectations.length; ++j) {
+
+                var srcAffect = srcEmployee._affectations[j];
+
+                if (dstAffect._period == srcAffect._period) {
+
+                    srcAffect._days     = (dstAffect._days != '')       ? dstAffect._days           : srcAffect._days;
+                    srcAffect._school   = (dstAffect._school != '')     ? dstAffect._school     : srcAffect._school;
+                    srcAffect._section  = (dstAffect._section != '')    ? dstAffect._section    : srcAffect._section;
+
+                    matched = true;
+                }
+            }
+
+            if (!matched) {
+                srcEmployee._affectations.push(dstAffect.deep_copy());
+            }
+        }
+    },
+};
+
+
 var GAPI = {
 
     getValues: function (id, rangeName) {
@@ -330,8 +624,8 @@ var REPARTITION_SJO = {
         ['CARNAVAL_MOINS',          'Jeanne MERTON',       'CARN',      'MOINS'],
         ['PAQUES_MOINS',            'Jeanne MERTON',       'PACQ',      'MOINS'],
         ['MERC_P1_PLUS',            'Edouard MARCEAU',     'MERC_P1',   'PLUS'],
-        ['NOEL_PLUS',               'Edouard MARCEAU',     'TOUS',      'PLUS'],
-        ['CARNAVAL_PLUS',           'Edouard MARCEAU',     'NOEL',      'PLUS'],
+        ['TOUSSAINT_PLUS',          'Edouard MARCEAU',     'TOUS',      'PLUS'],
+        ['NOEL_PLUS',               'Edouard MARCEAU',     'NOEL',      'PLUS'],
         ['CARNAVAL_PLUS',           'Edouard MARCEAU',     'CARN',      'PLUS'],
         ['PAQUES_PLUS',             'Edouard MARCEAU',     'PACQ',      'PLUS'],
     ],
@@ -360,11 +654,11 @@ var REPARTITION_SJO = {
     },
         
 
-    from_repartition: function () {
+    from: function () {
 
         var employees = [];
 
-        for (var i = 9; i < 9 + 1; ++i) {
+        for (var i = 0; i < this.DETAILS.length; ++i) {
             const tab = this.DETAILS[i][0];
 
             // Change Director Name Range when tabs > 8
@@ -412,8 +706,8 @@ var REPARTITION_SJO = {
                 if (dirValues[i][this.COLS.DIR_FULLNAME]) {
 
                     var v = dirValues[i];
-                    var a = new EMPLOYEE.Affectation();
-                    var e = new EMPLOYEE.Employee();
+                    var a = new Affectation();
+                    var e = new Employee();
 
                     e._fullname     = v[this.COLS.DIR_FULLNAME];
                     e._grade        = v[this.COLS.DIR_GRADE];
@@ -428,7 +722,7 @@ var REPARTITION_SJO = {
                     a._section      = this.DETAILS[index][3];
 
                     a.addDay(
-                        EMPLOYEE.DAYS.MONDAY,
+                        EMPLOYEE.MONDAY,
                         v[this.COLS.DIR_H_MORN],
                         v[this.COLS.DIR_H_MORN],
                         v[this.COLS.DIR_H_EVEN]);
@@ -464,7 +758,7 @@ var REPARTITION_SJO = {
                         a._section  = this.DETAILS[index][3];
 
                         a.addDay(
-                            EMPLOYEE.DAYS.MONDAY,
+                            EMPLOYEE.MONDAY,
                             v[this.COLS.EMP_H_START],
                             v[this.COLS.EMP_H_START + 1],
                             v[this.COLS.EMP_H_START + 2]);
@@ -476,7 +770,7 @@ var REPARTITION_SJO = {
 
                         var h_start = this.COLS.EMP_H_START;
 
-                        for (var j = EMPLOYEE.DAYS.MONDAY; j < EMPLOYEE.DAYS.FRIDAY + 1; ++j) {
+                        for (var j = EMPLOYEE.MONDAY; j < EMPLOYEE.FRIDAY + 1; ++j) {
                             a._school   = this.DETAILS[index][1];
                             a._period   = this.DETAILS[index][2];
                             a._section  = this.DETAILS[index][3];
@@ -509,13 +803,13 @@ var REPARTITION_SJO = {
         },
 
 
-    to_repartition: function(employees) {
+    to: function(employees) {
 
         var dirGroups = [];
         var empGroups = [];
 
         // Initialize our groups
-        for (var i = 0; i < this.TABS.length; ++i) {
+        for (var i = 0; i < this.DETAILS.length; ++i) {
             dirGroups.push([]);
             empGroups.push([]);
         }
@@ -572,6 +866,7 @@ var REPARTITION_SJO = {
                 var a = e._affectations[j];
 
                 var index = affectationToGroup(a);
+                // Logger.log('affectation: %s %s %s %s', a._school, a._period, a._section, e._fullname);
 
                 if (e._quality == 'DAP') {
 
@@ -592,10 +887,16 @@ var REPARTITION_SJO = {
                         }
                     
                     // Logger.log('index: %s', index);
-                    // Logger.log('affectation: %s %s %s', a._school, );
-                    dirGroups[index].push(
-                        row
-                    );
+
+                    if (index != undefined) {
+
+                        dirGroups[index].push(
+                            row
+                        );
+                    }
+                    else {
+                        Logger.log('Error: index undefined for employee %s with data: %s', e._fullname, a._school, a._period, a._section);
+                    }
                 }
                 else {
 
@@ -618,21 +919,39 @@ var REPARTITION_SJO = {
                         row.push( a._days[k][ EMPLOYEE.H_EVEN ] );
                     }
 
-                    empGroups[index].push(
-                        row
-                    );
+                    if (index != undefined) {
+
+                        empGroups[index].push(
+                            row
+                        );
+                    }
+                    else {
+                        Logger.log('Error: index undefined for employee %s with data: %s', e._fullname, a._school, a._period, a._section);
+                    }
                 }
             }
         }
 
+        var data = [];
+
         for (var i = 0; i < dirGroups.length; ++i) {
-            for (var j = 0; j < dirGroups[i].length; ++j)
-                Logger.log('%s', dirGroups[i][j]);
+            // for (var j = 0; j < dirGroups[i].length; ++j)
+            //     Logger.log('%s', dirGroups[i][j]);
+
+            data = data.concat(dirGroups[i]);
         }
         for (var i = 0; i < empGroups.length; ++i) {
-            for (var j = 0; j < empGroups[i].length; ++j)
-                Logger.log('%s', empGroups[i][j]);
+            // for (var j = 0; j < empGroups[i].length; ++j)
+            //     Logger.log('%s', empGroups[i][j]);
+
+            data = data.concat(empGroups[i]);
         }
+
+        GAPI.updateValues(
+            data, 
+            '1Vaf4a5hL3L_N9v7YmaC2hiFqL4k-FMXcUQ31avtjTRs',
+            'REPARTITION_SJO!A1:V',
+            'USER_ENTERED');
     },
 };
 
@@ -640,21 +959,23 @@ var REPARTITION_SJO = {
 var SUIVICOMPTEHEURES_SJO = {
 
     CONFIG: {
-        ID: '1zXL8jlLx7Bc18ypHG9J1xEhzOwGlAALeJorhrDNhhZ0',
+        ID: '1hOc7GccePGflrWUQBTZlYz2ATbHhGz7TzSzKvtShIAk',
 
         NAME_RANGE: 'AFFECTION_SJO!A18:S',
     },
 
+
     COLS: {
         FULLNAME: 0,
-        IS_DIR: 5,      // TRUE/FALSE
-        SCHOOL: 6,
-
+        
         VOID_1: 1,      // "Heures Travailles lissées"
         VOID_2: 2,      // "Heures lissées Avec Congés"
-
+        
         M_START: 3,
         M_END: 4,
+
+        IS_DIR: 5,      // TRUE/FALSE
+        SCHOOL: 6,
 
         H_MORN: 7,
         H_NOON: 8,
@@ -680,14 +1001,27 @@ var SUIVICOMPTEHEURES_SJO = {
         'MERC_P1',
         'MERC_P2',
         'MERC_P3',
-
-        'TOUS',
+        'TOUSSAINT',
         'NOEL',
-        'CARN',
-        'PAQU',
+        'CARNAVAL',
+        'PAQUES',
         'JUIL',
         'AOUT',
     ],
+
+
+    PERIOD_TO_INDEX: {
+        'MERC_P1':      10,
+        'MERC_P2':      11,
+        'MERC_P3':      12,
+
+        'TOUSSAINT':         13,
+        'NOEL':         14,
+        'CARNAVAL':         15,
+        'PAQUES':         16,
+        'JUIL':         17,
+        'AOUT':         18,
+    },
 
 
     from: function() {
@@ -695,10 +1029,15 @@ var SUIVICOMPTEHEURES_SJO = {
         var values = GAPI.getValues(this.CONFIG.ID, this.CONFIG.NAME_RANGE);
         var employees = [];
 
-        for (var i = 0; i < 10; ++i) { // values.length; ++i) {
+        Logger.log('%s', values.length);
 
+        for (var i = 0; i < values.length; ++i) { // 10; ++i) {
+            
             var v = values[i];
-            var e = new EMPLOYEE.Employee();
+
+            if (v[this.COLS.FULLNAME] == '')
+                continue;
+            var e = new Employee();
 
             e._fullname         = v[this.COLS.FULLNAME];
             e._quality          = (v[this.COLS.IS_DIR] == 'TRUE') ? 'DAP' : '';
@@ -710,7 +1049,7 @@ var SUIVICOMPTEHEURES_SJO = {
             e._sum_weekly_peri  = v[this.COLS.VOID_1];
 
 
-            var affectation = new EMPLOYEE.Affectation();
+            var affectation = new Affectation();
 
             affectation._school     = v[this.COLS.SCHOOL];
             affectation._period     = 'PERI';
@@ -772,8 +1111,88 @@ var SUIVICOMPTEHEURES_SJO = {
     },
 
 
-    to: function() {
+    to: function(employees) {
         
+        var values = [];
+
+        for (var i = 0; i < employees.length; ++i) {
+            
+            var employee = employees[i];
+            
+            // Initialize current value
+            var value = [];
+            for (var j = 0; j < this.COLS.length; ++j)
+                value.push('');
+
+            value[this.COLS.FULLNAME] = employee._fullname;
+
+            value[this.COLS.VOID_1]     = 0;    // employee._sum_weekly_peri;
+            value[this.COLS.VOID_1]     = 0;    // employee._sum_acm_peri;
+
+            value[this.COLS.M_START]    = employee._contract_start;
+            value[this.COLS.M_END]      = employee._contract_end;
+
+            value[this.COLS.IS_DIR]     = (employee._quality == 'DAP') ? 'TRUE' : 'FALSE';
+            value[this.COLS.SCHOOL]     = employee._school;
+
+            for (var j = 0; j < employee._affectations.length; ++j) {
+
+                var affectation = employee._affectations[j];
+
+                // TODO
+                // - Check error on days[0]
+                
+                if (affectation._period == 'PERI') {
+
+                    value[this.COLS.SCHOOL] = affectation._school;
+
+                    value[this.COLS.H_MORN] = affectation._days[0][EMPLOYEE.H_MORN];
+                    value[this.COLS.H_NOON] = affectation._days[0][EMPLOYEE.H_NOON];
+                    value[this.COLS.H_EVEN] = affectation._days[0][EMPLOYEE.H_EVEN];
+                }
+                else {
+                    // Build value
+                    var t = '';
+
+                    if (affectation._days[0][EMPLOYEE.H_NOON] == 8)  // Centre
+                        t += 'C_';
+                    else                                    // Garderie
+                        t += 'G_';
+
+                    if (affectation._section == 'MOINS')
+                        t += 'MAT';
+                    else
+                        t += 'ELE';
+
+                    if (employee._quality == 'DAP')
+                        t += '_DIR';
+
+                        // Convert period to index
+                        // MERC_P1 => 10
+                    value[ this.PERIOD_TO_INDEX[affectation._period] ] = t;
+                }
+            }
+
+            // Check empty ALSH values
+            for (var j = this.COLS.ALSH_P1; j < this.COLS.ALSH_AOUT + 1; ++j) {
+
+                if (value[j] == '' ||
+                    value[j] == null) {
+                    
+                    value[j] == '';
+                }
+            }
+
+            values.push(value);
+            // Logger.log('%s', value);
+        }
+
+        GAPI.updateValues(
+            values,
+            '1Vaf4a5hL3L_N9v7YmaC2hiFqL4k-FMXcUQ31avtjTRs',
+            'Suivi_SJO!A1:S',
+            'USER_ENTERED'
+        )
     },
 };
 
@@ -781,7 +1200,7 @@ var SUIVICOMPTEHEURES_SJO = {
 function Test_REPARTITION_SJO() {
     // Logger.log('%s', REPARTITION_SJO.CONFIG.DETAILS[0][0]);
     
-    var es = REPARTITION_SJO.from_repartition();
+    var es = REPARTITION_SJO.from();
 
     for (var i = 0; i < es.length; ++i) {
         Logger.log('%s', es[i].to_object());
@@ -789,16 +1208,64 @@ function Test_REPARTITION_SJO() {
 
     Logger.log('\n\n');
 
-    REPARTITION_SJO.to_repartition(es);
+    REPARTITION_SJO.to(es);
 }
 
 
-function Test_SUIVICOMPTEHEURE_from() {
+function Test_SUIVICOMPTEHEURE() {
+
     var es = SUIVICOMPTEHEURES_SJO.from();
 
     for (var i = 0; i < es.length; ++i) {
-        Logger.log('%s', es[i].to_object());
+        // Logger.log('%s', es[i].to_object());
     }
 
+    // Logger.log('\n\n');
+
+    SUIVICOMPTEHEURES_SJO.to(es);
+}
+
+
+function Test_EMPLOYEES() {
+    var esRepartition = REPARTITION_SJO.from();
+    var esSuivi = SUIVICOMPTEHEURES_SJO.from();
+
+    // Logger.log('Part. 1');
+    for (var i = 0; i < esRepartition.length; ++i) {
+        // Logger.log('%s', esRepartition[i].to_object());
+    }
+    // Logger.log('\n\n');
+    
+    
+    // Logger.log('Part. 2');
+    for (var i = 0; i < esSuivi.length; ++i) {
+        // Logger.log('%s', esSuivi[i].to_object());
+    }
+    // Logger.log('\n\n');
+    
+    
+    Logger.log('Part. 3');
+    
+    EMPLOYEES.update(esRepartition);
+    EMPLOYEES.update(esSuivi);
+    
+    var es = EMPLOYEES.getAll();
+    for (var i = 0; i < es.length; ++i) {
+        // Logger.log('%s', es[i].to_object());
+    }
     Logger.log('\n\n');
+
+    SUIVICOMPTEHEURES_SJO.to(es);
+    REPARTITION_SJO.to(es);
+}
+
+
+function Test_2() {
+    var esSuivi = SUIVICOMPTEHEURES_SJO.from();
+
+    Logger.log('Part. 1');
+    for (var i = 0; i < esSuivi.length; ++i) {
+        // Logger.log('%s', esSuivi[i].to_object());
+    }
+    // Logger.log('\n\n');
 }

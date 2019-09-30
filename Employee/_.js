@@ -690,7 +690,7 @@ var SUIVICOMPTEHEURES_SJO = {
     ],
 
 
-    from_suivi: function() {
+    from: function() {
 
         var values = GAPI.getValues(this.CONFIG.ID, this.CONFIG.NAME_RANGE);
         var employees = [];
@@ -770,6 +770,11 @@ var SUIVICOMPTEHEURES_SJO = {
 
         return employees;
     },
+
+
+    to: function() {
+        
+    },
 };
 
 
@@ -789,7 +794,7 @@ function Test_REPARTITION_SJO() {
 
 
 function Test_SUIVICOMPTEHEURE_from() {
-    var es = SUIVICOMPTEHEURES_SJO.from_suivi();
+    var es = SUIVICOMPTEHEURES_SJO.from();
 
     for (var i = 0; i < es.length; ++i) {
         Logger.log('%s', es[i].to_object());

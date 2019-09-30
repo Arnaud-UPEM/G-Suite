@@ -160,7 +160,7 @@ var Employees = function() {
         }
 
 
-        // Organise data according to DST format
+        // Organize data according to DST format
 
         // DIR
         if (row[ CONST.SRC_TYPE ] == 'DAP')

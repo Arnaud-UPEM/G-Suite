@@ -41,14 +41,14 @@ var EMPLOYEE = {
             References for Affectation object
     */
     DAYS: {
-        MONDAY: 1,
-        TUESDAY: 2,
-        THURSDAY: 3,
-        FRIDAY: 4,
-
-        WEDNESDAY: 5,
     },
+    MONDAY: 1,
+    TUESDAY: 2,
+    THURSDAY: 3,
+    FRIDAY: 4,
 
+    WEDNESDAY: 5,
+    
 
     /* 
         AFFECTATION - DAYS References
@@ -90,56 +90,18 @@ var EMPLOYEE = {
     },
 
 
-    employee_raw: [
-        '',			// fname: 
-        '',			// lname: 
-
-        '',			// dob: 
-        '',			// address: 
-
-        '',			// phone_per: 
-        '',			// phone_pro: 
-
-        '',			// grades: 
-        '',			// quality: 
-
-        '',			// obs: 
-
-        // affectations
-        [
-            /*
-                [
-                    '',			school 
-    
-                    0,			h_morn
-                    0,			h_noon
-                    0,			h_even
-    
-                    [], 		period 
-                ],
-            */
-        ],
-
-    ],
-
-
-    Data: {
-
-    },
-
-
     Affectation: function () {
         this._school = '';
         this._period = '';
         this._section = '';
 
         this._days = [
-            /* 
-                [MONDAY, 	2, 0, 2],
-                [TUESDAY, 	2, 2, 2],
-                [THURSDAY, 	0, 2, 0],
-                [FRIDAY, 	0, 0, 2],	
-            */
+        /* 
+            [MONDAY, 	2, 0, 2],
+            [TUESDAY, 	2, 2, 2],
+            [THURSDAY, 	0, 2, 0],
+            [FRIDAY, 	0, 0, 2],	
+        */
         ];
 
         this.addDay = function (day, h1, h2, h3) {
@@ -212,6 +174,9 @@ var EMPLOYEE = {
 
         this._affectations = []; 		// Array of Affectation
 
+        this._contract_start = '';
+        this._contract_end = '';
+
         // Outputs
         this.print = function () {
             Logger.log('');
@@ -258,28 +223,31 @@ var EMPLOYEE = {
                 affs.push(this._affectations[i].to_object());
 
             return {
-                'fname': this._fname,
-                'lname': this._lname,
-                'fullname': this._fullname,
+                'fname':        this._fname,
+                'lname':        this._lname,
+                'fullname':     this._fullname,
 
-                'dob': this._dob,
-                'address': this._address,
+                'dob':          this._dob,
+                'address':      this._address,
 
-                'discharded': this._discharded,
+                'discharded':   this._discharded,
 
-                'phone_per': this._phone_per,
-                'phone_pro': this._phone_pro,
+                'phone_per':    this._phone_per,
+                'phone_pro':    this._phone_pro,
 
-                'grade': this._grade,
-                'school': this._school,
-                'quality': this._quality,
+                'grade':        this._grade,
+                'school':       this._school,
+                'quality':      this._quality,
 
-                'obs': this._obs,
+                'obs':          this._obs,
 
-                'sum_weekly_peri': this._sum_weekly_peri,
-                'sum_acm_peri': this._sum_acm_peri,
+                'sum_weekly_peri':  this._sum_weekly_peri,
+                'sum_acm_peri':     this._sum_acm_peri,
 
-                'affectations': affs,
+                'affectations':     affs,
+
+                'contract_start':       this._contract_start,
+                'contract_end':         this._contract_end,
             };
         };
     },
@@ -669,15 +637,163 @@ var REPARTITION_SJO = {
 };
 
 
+var SUIVICOMPTEHEURES_SJO = {
+
+    CONFIG: {
+        ID: '1zXL8jlLx7Bc18ypHG9J1xEhzOwGlAALeJorhrDNhhZ0',
+
+        NAME_RANGE: 'AFFECTION_SJO!A18:S',
+    },
+
+    COLS: {
+        FULLNAME: 0,
+        IS_DIR: 5,      // TRUE/FALSE
+        SCHOOL: 6,
+
+        VOID_1: 1,      // "Heures Travailles lissées"
+        VOID_2: 2,      // "Heures lissées Avec Congés"
+
+        M_START: 3,
+        M_END: 4,
+
+        H_MORN: 7,
+        H_NOON: 8,
+        H_EVEN: 9,
+
+        // G_MAT/C_MAT  G_ELE/C_ELE
+        // G => 2, 0, 2
+        // C => 0, 8, 0
+        ALSH_P1: 10,
+        ALSH_P2: 11,
+        ALSH_P3: 12,
+
+        ALSH_TOUS: 13,
+        ALSH_NOEL: 14,
+        ALSH_CARN: 15,
+        ALSH_PAQU: 16,
+        ALSH_JUIL: 17,
+        ALSH_AOUT: 18,
+    },
+
+
+    INDEX_TO_PERIOD: [
+        'MERC_P1',
+        'MERC_P2',
+        'MERC_P3',
+
+        'TOUS',
+        'NOEL',
+        'CARN',
+        'PAQU',
+        'JUIL',
+        'AOUT',
+    ],
+
+
+    from_suivi: function() {
+
+        var values = GAPI.getValues(this.CONFIG.ID, this.CONFIG.NAME_RANGE);
+        var employees = [];
+
+        for (var i = 0; i < 10; ++i) { // values.length; ++i) {
+
+            var v = values[i];
+            var e = new EMPLOYEE.Employee();
+
+            e._fullname         = v[this.COLS.FULLNAME];
+            e._quality          = (v[this.COLS.IS_DIR] == 'TRUE') ? 'DAP' : '';
+
+            e._contract_start   = v[this.COLS.M_START];
+            e._contract_end     = v[this.COLS.M_END];
+
+            e._sum_acm_peri     = v[this.COLS.VOID_1];
+            e._sum_weekly_peri  = v[this.COLS.VOID_1];
+
+
+            var affectation = new EMPLOYEE.Affectation();
+
+            affectation._school     = v[this.COLS.SCHOOL];
+            affectation._period     = 'PERI';
+            affectation._section    = ''
+
+            affectation._days.push([
+                EMPLOYEE.MONDAY,
+                v[this.COLS.H_MORN], 
+                v[this.COLS.H_NOON], 
+                v[this.COLS.H_EVEN], 
+            ]);
+
+            e._affectations.push(affectation.deep_copy());
+            affectation.reset();
+
+            // Logger.log('%s', e._fullname);
+
+            for (var j = this.COLS.ALSH_P1; j < this.COLS.ALSH_AOUT + 1; ++j) {
+
+                // Logger.log('%s', this.INDEX_TO_PERIOD[j - 10]);
+                // Logger.log('%s', v[j]);
+
+                if (v[j] == '' ||
+                    v[j] == undefined)
+                    continue;  
+
+                affectation._school = '';
+                affectation._period = this.INDEX_TO_PERIOD[j - 10];
+
+                affectation._section = (v[j].indexOf('MAT') != -1) ? 'MOINS' : 'PLUS';
+
+                if (v[j].indexOf('G_') != -1) {
+
+                    affectation._days.push([
+                        EMPLOYEE.MONDAY,
+                        2,
+                        0,
+                        2
+                    ]);
+                }
+                else {
+                    
+                    affectation._days.push([
+                        EMPLOYEE.MONDAY,
+                        0,
+                        8,
+                        0
+                    ]);
+                }
+
+                e._affectations.push(affectation.deep_copy());
+                affectation.reset();
+            }
+
+            employees.push(e);
+        }
+
+        return employees;
+    },
+};
+
+
 function Test_REPARTITION_SJO() {
     // Logger.log('%s', REPARTITION_SJO.CONFIG.DETAILS[0][0]);
     
-    const es = REPARTITION_SJO.from_repartition();
+    var es = REPARTITION_SJO.from_repartition();
 
     for (var i = 0; i < es.length; ++i) {
-        // Logger.log('%s', es[i].to_object());
-
+        Logger.log('%s', es[i].to_object());
     }
 
+    Logger.log('\n\n');
+
     REPARTITION_SJO.to_repartition(es);
+}
+
+
+function Test_SUIVICOMPTEHEURE_from() {
+    var es = SUIVICOMPTEHEURES_SJO.from_suivi();
+
+    for (var i = 0; i < es.length; ++i) {
+        Logger.log('%s', es[i].to_object());
+    }
+
+    Logger.log('\n\n');
 }

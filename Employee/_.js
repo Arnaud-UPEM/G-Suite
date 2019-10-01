@@ -953,6 +953,234 @@ var REPARTITION_SJO = {
             'REPARTITION_SJO!A1:V',
             'USER_ENTERED');
     },
+
+
+    to_alsh: function (employees) {
+
+        /* 
+            Special setup
+        */
+        var ID = '1-JVQ-3kYWhVkwG5MYjkVGjy0X4qWCk0BfZj5gKAzgwU';
+                            
+                            //  PERI            ALSH
+        var DIR_NAME_RANGE  = ['D10:M10',   'D10:M13'];
+        var EMP_NAME_RANGE  = ['B15:V',     'B18:V'];
+
+        var DETAILS = [
+            // TAB                      SCHOOL              PERIOD          SECTION
+            // ['MERC_P1_MOINS',       'Jeanne MERTON',        'MERC_P1',      'MOINS'],
+            // ['MERC_P1_PLUS',        'Edouard MARCEAU',      'MERC_P1',      'PLUS'],
+
+            ['MERC_P2_MOINS',       'Jeanne MERTON',        'MERC_P2',      'MOINS'],
+            ['MERC_P2_PLUS',        'Edouard MARCEAU',      'MERC_P2',      'PLUS'],
+
+            ['MERC_P3_MOINS',       'Jeanne MERTON',        'MERC_P3',      'MOINS'],
+            ['MERC_P3_PLUS',        'Edouard MARCEAU',      'MERC_P3',      'PLUS'],            
+
+            ['TOUSSAINT_MOINS',     'Jeanne MERTON',        'TOUS',         'MOINS'],
+            ['TOUSSAINT_PLUS',      'Edouard MARCEAU',      'TOUS',         'PLUS'],
+
+            ['NOEL_MOINS',          'Jeanne MERTON',        'NOEL',         'MOINS'],
+            ['NOEL_PLUS',           'Edouard MARCEAU',      'NOEL',         'PLUS'],
+
+            ['CARNAVAL_MOINS',      'Jeanne MERTON',        'CARN',         'MOINS'],
+            ['CARNAVAL_PLUS',       'Edouard MARCEAU',      'CARN',         'PLUS'],
+
+            ['PAQUES_MOINS',        'Jeanne MERTON',        'PACQ',         'MOINS'],
+            ['PAQUES_PLUS',         'Edouard MARCEAU',      'PACQ',         'PLUS'],
+
+            ['JUILLET_MOINS',        'Jeanne MERTON',       'JUIL',         'MOINS'],
+            ['JUILLET_PLUS',         'Edouard MARCEAU',     'JUIL',         'PLUS'],
+
+            ['AOUT_MOINS',          'Jeanne MERTON',        'AOUT',         'MOINS'],
+            ['AOUT_PLUS',           'Edouard MARCEAU',      'AOUT',         'PLUS'],
+        ];
+
+        
+        var dirGroups = [];
+        var empGroups = [];
+
+        // Initialize our groups
+        for (var i = 0; i < DETAILS.length; ++i) {
+            dirGroups.push([]);
+            empGroups.push([]);
+        }
+
+        var ref = {
+            // 'CHAP':     0,
+            // 'PRES':     1,
+            // 'JMER':     2,
+            // 'EM':       3,
+            // 'DUR':      4,
+            // 'MDO':      5,
+            // 'HM':       6,
+            // 'BDP':      7,
+            // 'GOND':     8,
+
+            // 'MERC_P1_MOINS':    0,      // 9,
+            // 'MERC_P1_PLUS':     0,      // 10,
+            'MERC_P2_MOINS':    0,      
+            'MERC_P2_PLUS':     0,      
+            'MERC_P3_MOINS':    0,      
+            'MERC_P3_PLUS':     0,
+
+            'TOUSSAINT_MOINS':  0,      // 11,
+            'TOUSSAINT_PLUS':   0,      // 12,
+            'NOEL_MOINS':       0,      // 13,
+            'NOEL_PLUS':        0,      // 14,
+            'CARNAVAL_MOINS':   0,     // 15,
+            'CARNAVAL_PLUS':    0,     // 16,
+            'PAQUES_MOINS':     0,     // 17,
+            'PAQUES_PLUS':      0,     // 18,
+            'JUILLET_MOINS':    0,
+            'JUILLET_PLUS':     0,
+            'AOUT_MOINS':       0,
+            'AOUT_PLUS':        0,
+        };
+
+        // Init ref
+        var iref = 0
+        for (var key in ref) {
+            if (ref.hasOwnProperty(key)) {
+                ref[key] = iref;
+                ++iref;
+            }
+        }
+
+
+        // Macro - Convert Affectation to the right index
+        var affectationToGroup = function (affectation) {
+            if (affectation._school in ref)
+                return ref[affectation._school];
+            else
+                return ref[affectation._period + '_' + affectation._section];
+        };
+
+
+        // Core
+        for (var i = 0; i < employees.length; ++i) {
+
+            var e = employees[i];
+
+            for (var j = 0; j < e._affectations.length; ++j) {
+
+                /* 
+                    Affectation
+                        school
+                        period
+                        section        
+                        days
+                            [MONDAY,    2, 0, 2],
+                            [TUESDAY,   2, 2, 2],
+                            [THURSDAY,  0, 2, 0],
+                            [FRIDAY,    0, 0, 2],
+                */
+                var a = e._affectations[j];
+
+                // Skip PERI
+                if (a._period == 'PERI')
+                    continue;
+
+
+                // Index
+                var index = affectationToGroup(a);
+
+                if (index === undefined) {
+                    Logger.log('Error: index undefined for employee %s with data: %s - %s - %s', e._fullname, a._school, a._period, a._section);
+                    continue;
+                }
+                else {
+                    Logger.log('index = %s', index);
+                }
+
+
+                if (e._quality == 'DAP') {
+
+                    var row = [];
+                    row.push(e._fullname);
+                    row.push('');                 // Double column glitch
+                    row.push(e._grade);
+                    row.push(e._phone_per);
+                    row.push(e._phone_pro);
+                    row.push(e._discharded);
+                    row.push(a._period);
+
+                    // Error check
+                    if (a._days) {
+                        row.push(a._days[0][EMPLOYEE.H_MORN]);
+                        row.push(a._days[0][EMPLOYEE.H_NOON]);
+                        row.push(a._days[0][EMPLOYEE.H_EVEN]);
+                    }
+
+                    dirGroups[index].push(row);
+                }
+                else {
+
+                    var row = [];
+                    row.push(e._fullname);
+                    row.push('');                 // Double column glitch
+                    row.push(e._phone_per);
+                    row.push(e._grade);
+                    row.push(e._quality);
+                    row.push('');
+                    row.push('');
+                    row.push(e._obs);
+                    row.push(a._period);
+
+                    // Error check
+                    for (var k = 0; k < a._days.length; ++k) {
+
+                        row.push(a._days[k][EMPLOYEE.H_MORN]);
+                        row.push(a._days[k][EMPLOYEE.H_NOON]);
+                        row.push(a._days[k][EMPLOYEE.H_EVEN]);
+                    }
+
+                    empGroups[index].push(row);                    
+                }
+            }
+        }
+
+        var data = [];
+
+        // For DEBUG purpose
+        /*
+        for (var i = 0; i < DETAILS.length; ++i) {
+            
+            data.push([DETAILS[i][0]]);
+
+            data = data.concat(dirGroups[i]);
+            data = data.concat(empGroups[i]);
+        }
+        
+        GAPI.updateValues(
+            data,
+            '1Vaf4a5hL3L_N9v7YmaC2hiFqL4k-FMXcUQ31avtjTRs',
+            'REPARTITION_SJO_ALSH!A1:V',
+            'USER_ENTERED'
+            );
+        */
+            
+        // Final save
+        for (var i = 0; i < DETAILS.length; ++i) {
+            
+            data = dirGroups[i];
+            GAPI.updateValues(
+                data,
+                ID,
+                DETAILS[i][0] + '!' + DIR_NAME_RANGE[1],
+                'USER_ENTERED'
+                );
+
+                
+            data = empGroups[i];
+            GAPI.updateValues(
+                data,
+                ID,
+                DETAILS[i][0] + '!' + EMP_NAME_RANGE[1],
+                'USER_ENTERED'
+            );
+        }
+    },
 };
 
 
@@ -1005,7 +1233,7 @@ var SUIVICOMPTEHEURES_SJO = {
         'NOEL',
         'CARNAVAL',
         'PAQUES',
-        'JUIL',
+        'JUILLET',
         'AOUT',
     ],
 
@@ -1029,7 +1257,8 @@ var SUIVICOMPTEHEURES_SJO = {
         var values = GAPI.getValues(this.CONFIG.ID, this.CONFIG.NAME_RANGE);
         var employees = [];
 
-        Logger.log('%s', values.length);
+        // DEBUG - Value length
+        // Logger.log('%s', values.length);
 
         for (var i = 0; i < values.length; ++i) { // 10; ++i) {
             
@@ -1194,6 +1423,9 @@ var SUIVICOMPTEHEURES_SJO = {
             'USER_ENTERED'
         )
     },
+
+
+
 };
 
 
@@ -1268,4 +1500,6 @@ function Test_2() {
         // Logger.log('%s', esSuivi[i].to_object());
     }
     // Logger.log('\n\n');
+
+    REPARTITION_SJO.to_alsh(esSuivi);
 }

@@ -1099,11 +1099,11 @@ var REPARTITION_SJO = {
                 var index = affectationToGroup(a);
 
                 if (index === undefined) {
-                    Logger.log('Error: index undefined for employee %s with data: %s - %s - %s', e._fullname, a._school, a._period, a._section);
+                    // Logger.log('Error: index undefined for employee %s with data: %s - %s - %s', e._fullname, a._school, a._period, a._section);
                     continue;
                 }
                 else {
-                    Logger.log('index = %s', index);
+                    // Logger.log('index = %s', index);
                 }
 
 

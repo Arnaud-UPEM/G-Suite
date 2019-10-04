@@ -963,8 +963,8 @@ var REPARTITION_SJO = {
         var ID = '1-JVQ-3kYWhVkwG5MYjkVGjy0X4qWCk0BfZj5gKAzgwU';
                             
                             //  PERI            ALSH
-        var DIR_NAME_RANGE  = ['D10:M10',   'D10:M13'];
-        var EMP_NAME_RANGE  = ['B15:V',     'B18:V'];
+        var DIR_NAME_RANGE  = ['D10:M10',   'D10:M11'];
+        var EMP_NAME_RANGE  = ['B15:V',     'B16:V'];
 
         var DETAILS = [
             // TAB                      SCHOOL              PERIOD          SECTION
@@ -1038,6 +1038,19 @@ var REPARTITION_SJO = {
             'AOUT_PLUS':        0,
         };
 
+
+        var period_src_to_dst = {
+            'MERC_P1':      'MERC P1',
+            'MERC_P2':      'MERC P2',
+            'MERC_P3':      'MERC P3',
+            'TOUSSAINT':    'TOUSS',
+            'NOEL':         'NOEL',
+            'CARNAVAL':     'CARN',
+            'PAQUES':       'PAQUES',
+            'JUILLET':      'JUILLET',
+            'AOUT':         'AOUT',
+        };
+
         // Init ref
         var iref = 0
         for (var key in ref) {
@@ -1098,12 +1111,12 @@ var REPARTITION_SJO = {
 
                     var row = [];
                     row.push(e._fullname);
-                    row.push('');                 // Double column glitch
-                    row.push(e._grade);
-                    row.push(e._phone_per);
-                    row.push(e._phone_pro);
-                    row.push(e._discharded);
-                    row.push(a._period);
+                    row.push('');                   // Double column glitch
+                    row.push('');                   // row.push(e._grade);
+                    row.push('');                   // row.push(e._phone_per);
+                    row.push('');                   // row.push(e._phone_pro);
+                    row.push(true);                   // row.push(e._discharded);
+                    row.push( period_src_to_dst[a._period] );
 
                     // Error check
                     if (a._days) {
@@ -1118,14 +1131,14 @@ var REPARTITION_SJO = {
 
                     var row = [];
                     row.push(e._fullname);
-                    row.push('');                 // Double column glitch
-                    row.push(e._phone_per);
-                    row.push(e._grade);
-                    row.push(e._quality);
+                    row.push('');                   // Double column glitch
+                    row.push('');                   // row.push(e._phone_per);
+                    row.push('');                   // row.push(e._grade);
+                    row.push('');                   // row.push(e._quality);
                     row.push('');
                     row.push('');
-                    row.push(e._obs);
-                    row.push(a._period);
+                    row.push('');                   // row.push(e._obs);
+                    row.push( period_src_to_dst[a._period] );
 
                     // Error check
                     for (var k = 0; k < a._days.length; ++k) {
@@ -1163,7 +1176,15 @@ var REPARTITION_SJO = {
         // Final save
         for (var i = 0; i < DETAILS.length; ++i) {
             
-            data = dirGroups[i];
+            // If len > 2 crop data
+            if (dirGroups[i].length > 2) {
+                data = dirGroups[i].slice(0, 2);
+                for (var j = 2; j < dirGroups[i].slice(2).length; j++)
+                    Logger.log('Sliced %s', dirGroups[i][j])
+            }
+            else
+                data = dirGroups[i];
+
             GAPI.updateValues(
                 data,
                 ID,

@@ -647,6 +647,7 @@ var REPARTITION_SJO = {
         EMP_PHONE: 2,
         EMP_GRADE: 3,
         EMP_QUALITY: 4,
+        EMP_SUM_WEEKLY: 5,
         EMP_OBS: 7,
         EMP_AFFECT: 8,
 
@@ -1134,7 +1135,7 @@ var REPARTITION_SJO = {
                     row.push('');                   // Double column glitch
                     row.push('');                   // row.push(e._phone_per);
                     row.push('');                   // row.push(e._grade);
-                    row.push('');                   // row.push(e._quality);
+                    row.push('ANIM.');                   // row.push(e._quality);
                     row.push('');
                     row.push('');
                     row.push('');                   // row.push(e._obs);
@@ -1172,18 +1173,71 @@ var REPARTITION_SJO = {
             'USER_ENTERED'
             );
         */
+
+        var empty_row = function() {
+            var row = [];
+            for (var i = 0; i < 10; i++)
+                row.push('');
+            return row;
+        };
             
         // Final save
         for (var i = 0; i < DETAILS.length; ++i) {
+            data = [];
             
-            // If len > 2 crop data
+            // Dir table can only take two names
+            // 1st is for 'Garderie'
+            // 2nd is for 'Centre'
+            // If length > 2 slice data
             if (dirGroups[i].length > 2) {
-                data = dirGroups[i].slice(0, 2);
+
+                // Keep the 1st two names
+                raw = dirGroups[i].slice(0, 2);
+                if (raw.length == 1)
+                    raw.push(empty_row());
+
+                // Apply an hours filter
+                if (raw[0][this.COLS.DIR_H_MORN] == '2.0') {
+                    data.push(raw[0]);
+                    data.push(raw[1]);
+                }
+                else {
+                    data.push(raw[1]);
+                    data.push(raw[0]);
+                }
+
+                // Print leftover names when data > 2
                 for (var j = 2; j < dirGroups[i].slice(2).length; j++)
                     Logger.log('Sliced %s', dirGroups[i][j])
             }
-            else
-                data = dirGroups[i];
+            else {
+                raw = dirGroups[i];
+                if (raw.length == 1)
+                    raw.push(empty_row());
+
+                // Dir table has an order
+                // 1st is for 'Garderie'
+                // 2nd is for 'Centre'
+                if (raw[0][this.COLS.DIR_H_MORN] == '2.0') {
+                    data.push(raw[0]);
+                    data.push(raw[1]);
+                }
+                else {                    
+                    data.push(raw[1]);
+                    data.push(raw[0]);
+                }
+            }
+            // Add formula for directors
+            if (data.length > 0) {
+                
+                Logger.log(i);
+                Logger.log(data);
+                data[0][this.COLS.DIR_GRADE]     = '=ARRAYFORMULA(if($D10:$D11="";;VLOOKUP($D10:$D11;DET_SAL;5;FALSE)))';
+                data[0][this.COLS.DIR_PHONE_PER] = '=ARRAYFORMULA(if($D10:$D11="";;VLOOKUP($D10:$D11;DET_SAL;4;FALSE)))';
+                data[0][this.COLS.DIR_PHONE_PRO] = '=ARRAYFORMULA(if($D10:$D11="";;VLOOKUP($D10:$D11;DET_SAL;3;FALSE)))';
+            }
+
+            // Logger.log(data);
 
             GAPI.updateValues(
                 data,
@@ -1193,7 +1247,15 @@ var REPARTITION_SJO = {
                 );
 
                 
-            data = empGroups[i];
+            data = empGroups[i];    
+
+            // Add formula for directors
+            if (data.length > 0) {
+                data[0][this.COLS.EMP_PHONE] = '=ARRAYFORMULA(if(B16:B55="";;VLOOKUP(B16:B55;DET_SAL;3;FALSE)))';
+                data[0][this.COLS.EMP_GRADE] = '=ARRAYFORMULA(if(B16:B55="";;VLOOKUP(B16:B55;DET_SAL;5;FALSE)))';
+                data[0][this.COLS.EMP_SUM_WEEKLY] = '=ARRAYFORMULA(IFS(B16:B55="";;RECAP_STATUS="AJOUR";VLOOKUP(B16:B55;HEBDO_PERI;2;FALSE);RECAP_STATUS="OBS";"ACTUALISER";RECAP_STATUS="ENCOURS";"EN COURS"))';
+            }
+
             GAPI.updateValues(
                 data,
                 ID,

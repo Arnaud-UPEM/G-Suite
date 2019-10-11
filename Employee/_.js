@@ -567,7 +567,6 @@ var GAPI = {
             valueInputOption: valueInputOption
         });
     },
-
 };
 
 

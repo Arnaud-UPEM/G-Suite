@@ -1,63 +1,3 @@
-var Affectation = function () {
-    this._school = '';
-    this._period = '';
-    this._section = '';
-    
-    this._days = [
-        /* 
-            [MONDAY,    2, 0, 2],
-            [TUESDAY,   2, 2, 2],
-            [THURSDAY,  0, 2, 0],
-            [FRIDAY,    0, 0, 2],
-        */
-    ];
-    
-    this.addDay = function (day, h1, h2, h3) {
-        this._days.push([day, h1, h2, h3]);
-    };
-    
-    
-    this.reset = function () {
-        this._school = '';
-        this._period = '';
-        this._section = '';
-    
-        while (this._days.length) {
-            this._days.pop();
-        }
-    };
-    
-    
-    this.deep_copy = function () {
-        var days = [];
-        for (var i = 0; i < this._days.length; ++i)
-            days.push(this._days[i]);
-    
-        var a = new EMPLOYEE.Affectation();
-        a._school = this._school;
-        a._period = this._period;
-        a._section = this._section;
-        a._days = days;
-        return a;
-    };
-    
-    
-    this.to_object = function () {
-        var ds = [];
-        for (var i = 0; i < this._days.length; ++i)
-            ds.push(this._days[i]);
-    
-        return {
-            'school': this._school,
-            'period': this._period,
-            'section': this._section,
-    
-            'days': ds,
-        };
-    };
-};
-
-
 var EmployeeSuivi = function () {
     this._fullname = '';
 
@@ -296,8 +236,11 @@ var SUIVICOMPTEHEURES = {
             e._h_noor = v[this.COLS.H_NOON];
             e._h_even = v[this.COLS.H_EVEN];
 
-            for (var j = this.COLS.ALSH_P1; j < this.COLS.ALSH_AOUT + 1; ++j)
+            for (var j = this.COLS.ALSH_P1; j < this.COLS.ALSH_AOUT + 1; ++j) {
+                if (v[j] == 'CONGES_PAYES')
+                    continue;
                 e._alsh.push(v[j]);
+            }
 
             employees.push(e);
         }
@@ -484,9 +427,12 @@ var REPARTITION = {
 
 
         // Core
+        // for (var i = 0; i < 5; ++i) {
         for (var i = 0; i < employees.length; ++i) {
 
             var e = employees[i];
+
+            // Logger.log('name: %s', e._fullname);
 
             /* PERI */
             // Skip
@@ -496,11 +442,13 @@ var REPARTITION = {
             // Skip MERC P1
             for (var j = 1; j < e._alsh.length; ++j) {
                 
-                var alsh = e._alsh[i];
+                var alsh = e._alsh[j];
 
                 if (alsh == '' ||
-                    alsh == undefined)
+                    alsh === undefined)
                     continue;
+
+                // Logger.log('alsh: %s', alsh);
 
                 /*
                     Parse affectation
@@ -534,7 +482,7 @@ var REPARTITION = {
 
                 // Dir?
                 if (alsh.indexOf('DIR') !== -1) 
-                    dir = true;
+                    is_dir = true;
 
 
 
@@ -551,13 +499,15 @@ var REPARTITION = {
                 var index = j * 2;
                     index += (!moins) ? 1 : 0;
 
-                Logger.log('index: %s, j: %s', index, j);
+                // Logger.log('index: %s, j: %s', index, j);
 
 
                 /*
                     Start row
                 */
-                if (dir) {
+                if (is_dir) {
+
+                    // Logger.log('dir');
 
                     var row = [];
                         row.push(e._fullname);                      // Fullname
@@ -601,14 +551,69 @@ var REPARTITION = {
 
         var data = [];
 
+        // Create en empty row
+        var empty_row = function() {
+            var row = [];
+            for (var i = 0; i < 10; i++)
+                row.push('');
+            return row;
+        };
+
         // For DEBUG purpose
         
         // Directors 1st
         data.push(['DIRECTORS']);
-        for (var i = 0; i < DETAILS.length; ++i) {
-            
+        for (var i = 0; i < dirGroups.length; ++i) {
+
+            if (dirGroups[i].length == 0)
+                continue;
+
+            // DEBUG
+            // Add title
             data.push([DETAILS[i]]);
-            data = data.concat(dirGroups[i]);
+
+            // data = data.concat(dirGroups[i]);
+
+            /*
+            */
+            var raw = [];
+
+            if (dirGroups[i].length > 2) {
+
+                // Keep the 1st two names
+                raw = dirGroups[i].slice(0, 2);
+
+                // Print leftover names when data > 2
+                for (var j = 2; j < dirGroups[i].length; j++)
+                    Logger.log('Sliced %s', dirGroups[i][j])
+            }
+            else {
+                raw = dirGroups[i];
+
+                // Create an empty row in the 2nd slot
+                if (raw.length == 1)
+                    raw.push(empty_row());
+            }
+
+            Logger.log('dirGroups: %s, raw: %s', dirGroups[i], raw);
+
+            // Add Formulas to 1st row
+            raw[0][this.COLS.DIR_GRADE]     = '=ARRAYFORMULA(if($D10:$D11="";;VLOOKUP($D10:$D11;DET_SAL;5;FALSE)))';
+            raw[0][this.COLS.DIR_PHONE_PER] = '=ARRAYFORMULA(if($D10:$D11="";;VLOOKUP($D10:$D11;DET_SAL;4;FALSE)))';
+            raw[0][this.COLS.DIR_PHONE_PRO] = '=ARRAYFORMULA(if($D10:$D11="";;VLOOKUP($D10:$D11;DET_SAL;3;FALSE)))';
+
+            // Filter hours
+            if (raw[0][this.COLS.DIR_H_MORN] == '2.0') {
+                data.push(raw[0]);
+                data.push(raw[1]);
+            }
+            else {
+                data.push(raw[1]);
+                data.push(raw[0]);
+            }
+            
+            // DEBUG
+            // Add return carrier
             data.push([]);
         }
 
@@ -617,10 +622,16 @@ var REPARTITION = {
         data.push([]);
         
         data.push(['EMPLOYEES']);
-        for (var i = 0; i < DETAILS.length; ++i) {
+        for (var i = 0; i < empGroups.length; ++i) {
             
+            // DEBUG
+            // Add title
             data.push([DETAILS[i]]);
+
             data = data.concat(empGroups[i]);
+
+            // DEBUG
+            // Add return carrier
             data.push([]);
         }
         GAPI.updateValues(
@@ -708,7 +719,7 @@ var REPARTITION = {
                 
             data = empGroups[i];    
 
-            // Add formula for directors
+            // Add formula for employees
             if (data.length > 0) {
                 data[0][this.COLS.EMP_PHONE] = '=ARRAYFORMULA(if(B16:B55="";;VLOOKUP(B16:B55;DET_SAL;3;FALSE)))';
                 data[0][this.COLS.EMP_GRADE] = '=ARRAYFORMULA(if(B16:B55="";;VLOOKUP(B16:B55;DET_SAL;5;FALSE)))';
@@ -748,6 +759,17 @@ function main_sjo() {
         // Logger.log('%s', esSuivi[i].to_object());
     }
     // Logger.log('\n\n');
+
+    // var data = [];
+    // for (var i = 0; i < esSuivi.length; ++i)
+    //     data.push(esSuivi[i].to_array());
+
+    // GAPI.updateValues(
+    //     data,
+    //     '1-JVQ-3kYWhVkwG5MYjkVGjy0X4qWCk0BfZj5gKAzgwU',
+    //     'DEBUG!A1:V',
+    //     'USER_ENTERED'
+    // );
 
     REPARTITION.to_sjo(esSuivi);
 }

@@ -166,7 +166,7 @@ var SUIVICOMPTEHEURES = {
         }
 
         return employees;
-    }
+    },
 
 
     from_fdf: function() {
@@ -198,56 +198,6 @@ var REPARTITION = {
     },
 
 
-    SJO_TABS: [
-        'CHAP',
-        'PRES',
-        'JMER',
-        'EM',
-        'DUR',
-        'MDO',
-        'HM',
-        'BDP',
-        'GOND',
-
-        'MERC_P1_MOINS',
-        'MERC_P1_PLUS',
-        'TOUSSAINT_MOINS',
-        'TOUSSAINT_PLUS',
-        'NOEL_MOINS',
-        'NOEL_PLUS',
-        'CARNAVAL_MOINS',
-        'CARNAVAL_PLUS',
-        'PAQUES_MOINS',
-        'PAQUES_PLUS',
-    ],
-
-
-    SJO_DETAILS: [
-        // TAB          SCHOOL      PERIOD      SECTION
-        ['CHAP',        'CHAP',     'PERI',     ''],
-        ['PRES',        'PRES',     'PERI',     ''],
-        ['JMER',        'JMER',     'PERI',     ''],
-        ['EM',          'EM',       'PERI',     ''],
-        ['DUR',         'DUR',      'PERI',     ''],
-        ['MDO',         'MDO',      'PERI',     ''],
-        ['HM',          'HM',       'PERI',     ''],
-        ['BDP',         'BDP',      'PERI',     ''],
-        ['GOND',        'GOND',     'PERI',     ''],
-
-        // TAB                      SCHOOL                  PERIOD      SECTION
-        ['MERC_P1_MOINS',           'Jeanne MERTON',       'MERC_P1',   'MOINS'],
-        ['TOUSSAINT_MOINS',         'Jeanne MERTON',       'TOUS',      'MOINS'],
-        ['NOEL_MOINS',              'Jeanne MERTON',       'NOEL',      'MOINS'],
-        ['CARNAVAL_MOINS',          'Jeanne MERTON',       'CARN',      'MOINS'],
-        ['PAQUES_MOINS',            'Jeanne MERTON',       'PACQ',      'MOINS'],
-        ['MERC_P1_PLUS',            'Edouard MARCEAU',     'MERC_P1',   'PLUS'],
-        ['TOUSSAINT_PLUS',          'Edouard MARCEAU',     'TOUS',      'PLUS'],
-        ['NOEL_PLUS',               'Edouard MARCEAU',     'NOEL',      'PLUS'],
-        ['CARNAVAL_PLUS',           'Edouard MARCEAU',     'CARN',      'PLUS'],
-        ['PAQUES_PLUS',             'Edouard MARCEAU',     'PACQ',      'PLUS'],
-    ],
-
-
     COLS: {
         DIR_FULLNAME: 0,
         DIR_GRADE: 2,
@@ -272,355 +222,7 @@ var REPARTITION = {
     },
 
 
-    to_fdf: function (employees) {
-
-        /* 
-            Special setup
-        */
-        var ID = '1XsVb3m4ntFICipgvXO5Jsdu54JAKf5BJpvlDtFCZeHw';
-                            
-        //                PERI          ALSH
-        var DIR_RANGE  = ['D10:M10',   'D10:M11'];
-        var EMP_RANGE  = ['B15:V',     'B16:V'];
-
-
-        var DETAILS = [
-            // TAB
-            'MERC_P1_MOINS',  
-            'MERC_P1_PLUS',   
-
-            'MERC_P2_MOINS',  
-            'MERC_P2_PLUS',   
-
-            'MERC_P3_MOINS',  
-            'MERC_P3_PLUS',   
-
-            'TOUSSAINT_MOINS',
-            'TOUSSAINT_PLUS', 
-
-            'NOEL_MOINS',     
-            'NOEL_PLUS',      
-
-            'CARNAVAL_MOINS', 
-            'CARNAVAL_PLUS',  
-
-            'PAQUES_MOINS',   
-            'PAQUES_PLUS',    
-
-            'JUILLET_MOINS',  
-            'JUILLET_PLUS',   
-
-            'AOUT_MOINS',     
-            'AOUT_PLUS',      
-        ];
-
-        
-        var dirGroups = [];
-        var empGroups = [];
-
-        // Initialize our groups
-        for (var i = 0; i < DETAILS.length; ++i) {
-            dirGroups.push([]);
-            empGroups.push([]);
-        }
-
-
-        var index_to_period = [
-            'MERC P1',
-            'MERC P2',
-            'MERC P3',
-            'TOUSS',
-            'NOEL',
-            'CARN',
-            'PAQUES',
-            'JUILLET',
-            'AOUT',
-        ];
-
-
-        var index_to_tab = [
-            'MERC_P1',
-            'MERC_P2',
-            'MERC_P3',
-            'TOUSSAINT',
-            'NOEL',
-            'CARNAVAL',
-            'PAQUES',
-            'JUILLET',
-            'AOUT',
-        ];
-
-
-        var _index_to_period = {
-            'MERC_P1':      'MERC P1',
-            'MERC_P2':      'MERC P2',
-            'MERC_P3':      'MERC P3',
-            'TOUSSAINT':    'TOUSS',
-            'NOEL':         'NOEL',
-            'CARNAVAL':     'CARN',
-            'PAQUES':       'PAQUES',
-            'JUILLET':      'JUILLET',
-            'AOUT':         'AOUT',
-        };
-
-
-        // Core
-        // for (var i = 0; i < 5; ++i) {
-        for (var i = 0; i < employees.length; ++i) {
-
-            var e = employees[i];
-
-            // Logger.log('name: %s', e._fullname);
-
-            /* PERI */
-            // Skip
-
-
-            /* ALSH */
-            // Skip MERC P1
-            for (var j = 1; j < e._alsh.length; ++j) {
-                
-                var alsh = e._alsh[j];
-
-                if (alsh == '' ||
-                    alsh === undefined)
-                    continue;
-
-                // Logger.log('alsh: %s', alsh);
-
-                /*
-                    Parse affectation
-                */
-                var moins = true;
-                var is_dir = false;
-
-                var h_morn = 0;
-                var h_noon = 0;
-                var h_even = 0;
-
-                // Centre
-                if (alsh.indexOf('C_') !== -1) {
-                    h_morn = 0;
-                    h_noon = 8;
-                    h_even = 0;
-                }
-                // Garderie
-                else {
-                    h_morn = 2;
-                    h_noon = 0;
-                    h_even = 2;
-                }
-                
-                // Maternel
-                if (alsh.indexOf('MAT') !== -1) 
-                    moins = true;
-                // Elementaire
-                else
-                    moins = false;
-
-                // Dir?
-                if (alsh.indexOf('DIR') !== -1) 
-                    is_dir = true;
-
-
-
-                /*
-                    Calculate dirGroups/empGroups
-                */
-                var index_str = index_to_tab[j];
-                
-                if (moins)
-                    index_str += '_MOINS';
-                else
-                    index_str += '_PLUS';
-
-                var index = j * 2;
-                    index += (!moins) ? 1 : 0;
-
-                // Logger.log('index: %s, j: %s', index, j);
-
-
-                /*
-                    Start row
-                */
-                if (is_dir) {
-
-                    // Logger.log('dir');
-
-                    var row = [];
-                        row.push(e._fullname);                      // Fullname
-                        row.push('');                               // Fullname glitch
-                        row.push('');                               // Grade
-                        row.push('');                               // Phone Per
-                        row.push('');                               // Phone Pro
-                        row.push(true);                             // Discharged?
-
-                        row.push( index_to_period[j] );             // Period
-
-                        row.push(h_morn);
-                        row.push(h_noon);
-                        row.push(h_even);
-
-
-                    dirGroups[index].push(row);
-                }
-                else {
-
-                    var row = [];
-                        row.push(e._fullname);                      // Fullname
-                        row.push('');                               // Fullname glitch
-                        row.push('');                               // Phone
-                        row.push('');                               // Grade
-                        row.push('ANIM.');                          // Quality
-                        row.push('');                               // Sum
-                        row.push('');                               // Sum
-                        row.push('');                               // Obs
-                        
-                        row.push( index_to_period[j] );             // Period
-
-                        row.push(h_morn);
-                        row.push(h_noon);
-                        row.push(h_even);
-
-                    empGroups[index].push(row);                    
-                }
-            }
-        }
-
-        var data = [];
-
-        // Create en empty row
-        var empty_row = function() {
-            var row = [];
-            for (var i = 0; i < 10; i++)
-                row.push('');
-            return row;
-        };
-
-        // For DEBUG purpose
-        
-        // Directors 1st
-        if (DEBUG)
-            data.push(['DIRECTORS']);
-
-        for (var i = 0; i < dirGroups.length; ++i) {
-
-            if (dirGroups[i].length == 0)
-                continue;
-
-            // DEBUG
-            // Add title
-            if (DEBUG)
-                data.push([DETAILS[i]]);
-
-            var raw = [];
-
-            if (dirGroups[i].length > 2) {
-
-                // Keep the 1st two names
-                raw = dirGroups[i].slice(0, 2);
-
-                // Print leftover names when data > 2
-                for (var j = 2; j < dirGroups[i].length; j++)
-                    Logger.log('Sliced %s', dirGroups[i][j])
-            }
-            else {
-                raw = dirGroups[i];
-
-                // Create an empty row in the 2nd slot
-                if (raw.length == 1)
-                    raw.push(empty_row());
-            }
-
-            Logger.log('dirGroups: %s, raw: %s', dirGroups[i], raw);
-
-            // Filter hours
-            if (raw[0][this.COLS.DIR_H_MORN] == '2.0') {
-                data.push(raw[0]);
-                data.push(raw[1]);
-            }
-            else {
-                data.push(raw[1]);
-                data.push(raw[0]);
-            }
-
-            // Add Formulas to 1st row
-            data[ data.length - 2 ][this.COLS.DIR_GRADE]     = '=ARRAYFORMULA(if($D10:$D11="";;VLOOKUP($D10:$D11;DET_SAL;5;FALSE)))';
-            data[ data.length - 2 ][this.COLS.DIR_PHONE_PER] = '=ARRAYFORMULA(if($D10:$D11="";;VLOOKUP($D10:$D11;DET_SAL;4;FALSE)))';
-            data[ data.length - 2 ][this.COLS.DIR_PHONE_PRO] = '=ARRAYFORMULA(if($D10:$D11="";;VLOOKUP($D10:$D11;DET_SAL;3;FALSE)))';
-
-            
-            // DEBUG
-            // Add return carrier
-            if (DEBUG)
-                data.push([]);
-
-            if (!DEBUG) {
-                GAPI.updateValues(
-                    data,
-                    ID,
-                    DETAILS[i] + '!' + DIR_RANGE[1],
-                    'USER_ENTERED'
-                );
-
-                data = [];
-            }
-        }
-
-        // Employee then
-        if (DEBUG) {
-            data.push([]);
-            data.push([]);
-
-            data.push(['EMPLOYEES']);
-        }
-        
-        for (var i = 0; i < empGroups.length; ++i) {
-
-            if (empGroups[i].length == 0)
-                continue;
-            
-            // DEBUG
-            // Add title
-            if (DEBUG)
-                data.push([DETAILS[i]]);
-
-            var raw = empGroups[i];
-                raw[0][this.COLS.EMP_PHONE] = '=ARRAYFORMULA(if(B16:B55="";;VLOOKUP(B16:B55;DET_SAL;3;FALSE)))';
-                raw[0][this.COLS.EMP_GRADE] = '=ARRAYFORMULA(if(B16:B55="";;VLOOKUP(B16:B55;DET_SAL;5;FALSE)))';
-                raw[0][this.COLS.EMP_SUM_WEEKLY] = '=ARRAYFORMULA(IFS(B16:B55="";;RECAP_STATUS="AJOUR";VLOOKUP(B16:B55;HEBDO_PERI;2;FALSE);RECAP_STATUS="OBS";"ACTUALISER";RECAP_STATUS="ENCOURS";"EN COURS"))';
-
-            data = data.concat(raw);            
-
-            // DEBUG
-            // Add return carrier
-            if (DEBUG)
-                data.push([]);
-
-            if (!DEBUG) {
-                GAPI.updateValues(
-                    data,
-                    ID,
-                    DETAILS[i] + '!' + EMP_RANGE[1],
-                    'USER_ENTERED'
-                );
-
-                data = [];
-            }
-        }
-
-        if (DEBUG) {            
-            GAPI.updateValues(
-                data,
-                '1-JVQ-3kYWhVkwG5MYjkVGjy0X4qWCk0BfZj5gKAzgwU',
-                'DEBUG_REP!A1:V',
-                'USER_ENTERED'
-            );
-        }
-    },
-
-
-    to_sjo: function (employees) {
+    to: function (employees) {
 
         /* 
             Special setup
@@ -934,8 +536,8 @@ var REPARTITION = {
                 data.push([DETAILS[i]]);
 
             var raw = empGroups[i];
-                raw[0][this.COLS.EMP_PHONE] = '=ARRAYFORMULA(if(B16:B55="";;VLOOKUP(B16:B55;DET_SAL;3;FALSE)))';
-                raw[0][this.COLS.EMP_GRADE] = '=ARRAYFORMULA(if(B16:B55="";;VLOOKUP(B16:B55;DET_SAL;5;FALSE)))';
+                raw[0][this.COLS.EMP_PHONE]      = '=ARRAYFORMULA(if(B16:B55="";;VLOOKUP(B16:B55;DET_SAL;3;FALSE)))';
+                raw[0][this.COLS.EMP_GRADE]      = '=ARRAYFORMULA(if(B16:B55="";;VLOOKUP(B16:B55;DET_SAL;5;FALSE)))';
                 raw[0][this.COLS.EMP_SUM_WEEKLY] = '=ARRAYFORMULA(IFS(B16:B55="";;RECAP_STATUS="AJOUR";VLOOKUP(B16:B55;HEBDO_PERI;2;FALSE);RECAP_STATUS="OBS";"ACTUALISER";RECAP_STATUS="ENCOURS";"EN COURS"))';
 
             data = data.concat(raw);            
@@ -967,6 +569,51 @@ var REPARTITION = {
         }
     },
 };
+
+
+function main() {
+    var esSuivi = SUIVICOMPTEHEURES.from_fdf();
+        esSuivi = esSuivi.concat(SUIVICOMPTEHEURES.from_sjo());
+
+    for (var i = 0; i < esSuivi.length; ++i) {
+        // Logger.log('%s', esSuivi[i].to_object());
+    }
+    // Logger.log('\n\n');
+
+    var data = [];
+        data.push([
+            'FULLNAME',
+            'SUM',
+            'SUM',
+            'M START',
+            'M END',
+            'DIR',
+            'SCHOOL',
+            'H MORN',
+            'H NOON',
+            'H EVEN',
+            'P1',
+            'P2',
+            'P3',
+            'TOUS',
+            'NOEL',
+            'CARN',
+            'PAQU',
+            'JUIL',
+            'AOUT',
+        ]);
+    for (var i = 0; i < esSuivi.length; ++i)
+        data.push(esSuivi[i].to_array());
+
+    GAPI.updateValues(
+        data,
+        '1-JVQ-3kYWhVkwG5MYjkVGjy0X4qWCk0BfZj5gKAzgwU',
+        'DEBUG_Sui!A1:V',
+        'USER_ENTERED'
+    );
+
+    REPARTITION.to(esSuivi);
+}
 
 
 function main_fdf() {
@@ -1005,12 +652,12 @@ function main_fdf() {
 
     GAPI.updateValues(
         data,
-        '1XsVb3m4ntFICipgvXO5Jsdu54JAKf5BJpvlDtFCZeHw',
+        '1-JVQ-3kYWhVkwG5MYjkVGjy0X4qWCk0BfZj5gKAzgwU',
         'DEBUG_Sui!A1:V',
         'USER_ENTERED'
     );
 
-    // REPARTITION.to_fdf(esSuivi);
+    REPARTITION.to(esSuivi);
 }
 
 
@@ -1034,5 +681,5 @@ function main_sjo() {
         'USER_ENTERED'
     );
 
-    REPARTITION.to_sjo(esSuivi);
+    REPARTITION.to(esSuivi);
 }
